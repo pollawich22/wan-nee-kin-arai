@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วันนี้กินอะไรดี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #ffe3ec;
+    --bg2: #fff4d6;
+    --card: #ffffff;
+    --ink: #4a2c40;
+    --muted: #8a6a7e;
+    --pink: #ff6fa3;
+    --orange: #ffa94d;
+    --mint: #5fd3b3;
+    --shadow: 0 10px 30px rgba(255, 111, 163, 0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow-x: hidden;
+  }
+  .floaty {
+    position: fixed; font-size: 32px; opacity: .35; pointer-events: none;
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-18px) rotate(10deg); } }
+
+  main { width: 100%; max-width: 440px; text-align: center; position: relative; z-index: 1; }
+  h1 {
+    font-family: 'Mitr', sans-serif; font-weight: 600;
+    font-size: clamp(32px, 9vw, 44px);
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 4px;
+  }
+  .sub { color: var(--muted); margin-bottom: 18px; font-size: 16px; }
+
+  /* ---------- ตัวกรอง ---------- */
+  .filters {
+    background: rgba(255,255,255,.7);
+    border-radius: 22px;
+    padding: 14px 14px 6px;
+    margin-bottom: 18px;
+    text-align: left;
+    box-shadow: 0 4px 16px rgba(255, 111, 163, .12);
+  }
+  .group { margin-bottom: 10px; }
+  .group-label {
+    font-family: 'Mitr', sans-serif; font-size: 14px; color: var(--muted);
+    margin-bottom: 6px; display: block;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .chip span {
+    display: inline-block;
+    font-family: 'Mitr', sans-serif; font-size: 14px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #fff; color: var(--ink);
+    border: 2px solid #ffd0e0;
+    cursor: pointer; user-select: none;
+    transition: background .15s, color .15s, border-color .15s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chip span:active { transform: scale(.95); }
+  .chip input:checked + span {
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    color: #fff; border-color: transparent;
+  }
+  .chip input:focus-visible + span { outline: 3px solid var(--mint); outline-offset: 2px; }
+  .match { font-size: 13px; color: var(--muted); text-align: center; padding: 2px 0 6px; }
+  .match b { color: var(--pink); }
+
+  /* ---------- การ์ดผลลัพธ์ ---------- */
+  .card {
+    background: var(--card);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: 24px 20px;
+    min-height: 200px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    border: 3px dashed #ffd0e0;
+  }
+  .emoji { font-size: 60px; line-height: 1; margin-bottom: 10px; transition: transform .2s; }
+  .dish {
+    font-family: 'Mitr', sans-serif; font-weight: 600;
+    font-size: clamp(24px, 7.5vw, 32px);
+    min-height: 1.3em;
+  }
+  .meta { margin-top: 6px; font-size: 14px; color: var(--muted); min-height: 1.4em; }
+  .quote {
+    margin-top: 10px; color: var(--muted); font-size: 17px; min-height: 1.5em;
+    opacity: 0; transform: translateY(6px); transition: opacity .35s, transform .35s;
+  }
+  .quote.show { opacity: 1; transform: none; }
+  .card.spinning .dish { color: var(--muted); }
+  .card.done { animation: pop .45s cubic-bezier(.3,1.6,.5,1); border-color: var(--mint); }
+  @keyframes pop { 0% { transform: scale(.9); } 100% { transform: scale(1); } }
+
+  .btn {
+    font-family: 'Mitr', sans-serif; font-weight: 600;
+    font-size: 26px; color: #fff;
+    width: 180px; height: 180px; border-radius: 50%; border: none; cursor: pointer;
+    background: radial-gradient(circle at 30% 30%, #ff9cc2, var(--pink) 60%, #e84f88);
+    box-shadow: 0 10px 0 #c93f73, 0 18px 30px rgba(232, 79, 136, .4);
+    transition: transform .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  .btn:active { transform: translateY(8px); box-shadow: 0 2px 0 #c93f73, 0 6px 14px rgba(232, 79, 136, .4); }
+  .btn:disabled { animation: none; filter: grayscale(.6); cursor: not-allowed; }
+  .btn:disabled:active { transform: none; box-shadow: 0 10px 0 #c93f73, 0 18px 30px rgba(232, 79, 136, .4); }
+  .btn small { display: block; font-size: 15px; font-weight: 400; opacity: .9; }
+  @keyframes breathe { 0%,100% { scale: 1; } 50% { scale: 1.04; } }
+
+  .count { margin-top: 20px; color: var(--muted); font-size: 14px; min-height: 1.4em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .floaty { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <span class="floaty" style="top:8%;left:6%">🍜</span>
+  <span class="floaty" style="top:15%;right:8%;animation-delay:1s">🌶️</span>
+  <span class="floaty" style="bottom:12%;left:10%;animation-delay:2s">🍚</span>
+  <span class="floaty" style="bottom:8%;right:12%;animation-delay:3s">🍧</span>
+
+  <main>
+    <h1>วันนี้กินอะไรดี</h1>
+    <p class="sub">คิดไม่ออก? ให้ปุ่มนี้ตัดสินใจแทนเลย</p>
+
+    <section class="filters" aria-label="ตัวกรอง">
+      <div class="group">
+        <span class="group-label">💰 งบ</span>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="budget" value="50"><span>ไม่เกิน 50</span></label>
+          <label class="chip"><input type="radio" name="budget" value="100"><span>50-100</span></label>
+          <label class="chip"><input type="radio" name="budget" value="any" checked><span>ไม่จำกัด</span></label>
+        </div>
+      </div>
+      <div class="group">
+        <span class="group-label">🍽️ ประเภท</span>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="type" value="any" checked><span>อะไรก็ได้</span></label>
+          <label class="chip"><input type="radio" name="type" value="noodle"><span>เส้น</span></label>
+          <label class="chip"><input type="radio" name="type" value="rice"><span>ข้าว</span></label>
+          <label class="chip"><input type="radio" name="type" value="dish"><span>กับข้าว</span></label>
+          <label class="chip"><input type="radio" name="type" value="dessert"><span>ของหวาน</span></label>
+        </div>
+      </div>
+      <div class="group">
+        <span class="group-label">🌶️ ความเผ็ด</span>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="spice" value="any" checked><span>อะไรก็ได้</span></label>
+          <label class="chip"><input type="radio" name="spice" value="0"><span>ไม่เผ็ด</span></label>
+          <label class="chip"><input type="radio" name="spice" value="1"><span>เผ็ดนิดๆ</span></label>
+          <label class="chip"><input type="radio" name="spice" value="2"><span>เผ็ดตาย</span></label>
+        </div>
+      </div>
+      <p class="match" id="match"></p>
+    </section>
+
+    <div class="card" id="card">
+      <div class="emoji" id="emoji">🤔</div>
+      <div class="dish" id="dish">กดปุ่มด้านล่างเลย!</div>
+      <div class="meta" id="meta"></div>
+      <div class="quote" id="quote"></div>
+    </div>
+
+    <button class="btn" id="btn">สุ่มเลย!<small>กดสิ รออะไร</small></button>
+    <p class="count" id="count"></p>
+  </main>
+
+<script>
+  // price = ราคาประมาณ (บาท), type = noodle | rice | dish | dessert, spice = 0 ไม่เผ็ด / 1 เผ็ดนิดๆ / 2 เผ็ดตาย
+  const menus = [
+    { name: "ผัดกะเพราหมูสับไข่ดาว", emoji: "🍳", price: 60,  type: "rice",    spice: 2, quote: "กะเพราอีกแล้วเหรอ... ก็ได้" },
+    { name: "ข้าวมันไก่",            emoji: "🍗", price: 50,  type: "rice",    spice: 0, quote: "ไก่ต้มหรือไก่ทอด ตัดสินใจเองนะ เราเหนื่อยแล้ว" },
+    { name: "ต้มยำกุ้ง",              emoji: "🦐", price: 150, type: "dish",    spice: 2, quote: "น้ำข้นหรือน้ำใส สงครามนี้ไม่มีวันจบ" },
+    { name: "ส้มตำ",                 emoji: "🥗", price: 50,  type: "dish",    spice: 2, quote: "สั่งพริกสองเม็ดพอ อย่าอวดเก่ง" },
+    { name: "ผัดไทย",                emoji: "🍝", price: 60,  type: "noodle",  spice: 0, quote: "เมนูระดับชาติ เลือกแล้วไม่มีใครว่า" },
+    { name: "ข้าวขาหมู",              emoji: "🐷", price: 50,  type: "rice",    spice: 0, quote: "ไดเอทเริ่มพรุ่งนี้ เหมือนทุกวัน" },
+    { name: "ก๋วยเตี๋ยวเรือ",          emoji: "🍜", price: 20,  type: "noodle",  spice: 1, quote: "สั่งสามชามเป็นเรื่องปกติ ไม่ต้องอาย" },
+    { name: "แกงเขียวหวานไก่",        emoji: "🍛", price: 80,  type: "dish",    spice: 1, quote: "เขียวแต่ไม่หวาน หลอกกันชัดๆ" },
+    { name: "ข้าวผัดปู",              emoji: "🦀", price: 90,  type: "rice",    spice: 0, quote: "หาเนื้อปูให้เจอก่อนแล้วค่อยมาคุยกัน" },
+    { name: "หมูกระทะ",               emoji: "🔥", price: 250, type: "dish",    spice: 0, quote: "ใส่เสื้อตัวที่ไม่รักไปนะ" },
+    { name: "ลาบหมู",                 emoji: "🌿", price: 70,  type: "dish",    spice: 2, quote: "ข้าวเหนียวสองห่อ อย่าโกหกตัวเอง" },
+    { name: "ไก่ย่าง ข้าวเหนียว",      emoji: "🍢", price: 90,  type: "dish",    spice: 0, quote: "กินมือเลย ช้อนไม่จำเป็น" },
+    { name: "ข้าวซอย",               emoji: "🍲", price: 70,  type: "noodle",  spice: 1, quote: "ไม่ต้องบินไปเชียงใหม่ก็ฟินได้" },
+    { name: "ผัดซีอิ๊ว",               emoji: "🥢", price: 50,  type: "noodle",  spice: 0, quote: "ทางเลือกของคนที่ไม่อยากเสี่ยงชีวิต" },
+    { name: "ราดหน้า",                emoji: "🥬", price: 50,  type: "noodle",  spice: 0, quote: "เส้นใหญ่หรือหมี่กรอบ... คิดไปก็เท่านั้น" },
+    { name: "ข้าวหมูแดง",             emoji: "🥩", price: 50,  type: "rice",    spice: 0, quote: "น้ำราดเยอะๆ ชีวิตจะดีขึ้น" },
+    { name: "โจ๊กหมู",                emoji: "🥣", price: 40,  type: "rice",    spice: 0, quote: "ใส่ไข่ลวกด้วย เดี๋ยวน้อยใจ" },
+    { name: "ข้าวไข่เจียว",            emoji: "🍳", price: 30,  type: "rice",    spice: 0, quote: "สิ้นเดือนก็งี้แหละ เข้าใจ" },
+    { name: "สุกี้น้ำ",                emoji: "🥘", price: 60,  type: "noodle",  spice: 0, quote: "ผักเยอะดี รู้สึกเป็นคนสุขภาพดีขึ้นมาทันที" },
+    { name: "ยำวุ้นเส้น",              emoji: "🌶️", price: 80,  type: "dish",    spice: 2, quote: "เผ็ดแล้วอย่ามาโทษเรา" },
+    { name: "ต้มข่าไก่",               emoji: "🥥", price: 90,  type: "dish",    spice: 0, quote: "ข่าไม่ต้องกิน วางไว้ข้างจานเหมือนทุกคน" },
+    { name: "หมูทอดกระเทียม",          emoji: "🧄", price: 70,  type: "dish",    spice: 0, quote: "คืนนี้ไม่ต้องคุยใกล้ใครนะ" },
+    { name: "คะน้าหมูกรอบ",            emoji: "🥦", price: 70,  type: "dish",    spice: 1, quote: "กินผักแล้วนะ (นับหมูกรอบด้วยไหม?)" },
+    { name: "ข้าวมันไก่ทอด",           emoji: "🍗", price: 50,  type: "rice",    spice: 0, quote: "ทอดแล้วอร่อยกว่า เถียงไม่ได้" },
+    { name: "บะหมี่เกี๊ยวหมูแดง",       emoji: "🥟", price: 50,  type: "noodle",  spice: 0, quote: "เกี๊ยวกุ้งเพิ่มอีกห้าบาท เอาเลย" },
+    { name: "แกงส้มชะอมไข่",           emoji: "🍲", price: 90,  type: "dish",    spice: 2, quote: "เปรี้ยวจี๊ดถึงใจ เหมือนแฟนเก่า" },
+    { name: "ผัดพริกแกงหมู",           emoji: "🌶️", price: 70,  type: "dish",    spice: 2, quote: "ดูเผ็ดแต่ใจดี ไม่เหมือนใครบางคน" },
+    { name: "ข้าวคลุกกะปิ",            emoji: "🥭", price: 60,  type: "rice",    spice: 1, quote: "เครื่องเยอะกว่าข้าว ถือว่าคุ้ม" },
+    { name: "ไข่พะโล้",               emoji: "🥚", price: 60,  type: "dish",    spice: 0, quote: "รสชาติแบบบ้านๆ คิดถึงแม่ขึ้นมาเลย" },
+    { name: "มาม่าผัดขี้เมา",          emoji: "🍜", price: 45,  type: "noodle",  spice: 2, quote: "ไม่มีอะไรในตู้เย็นแล้วใช่ไหม... ไม่เป็นไร" },
+    { name: "ปลากะพงนึ่งมะนาว",        emoji: "🐟", price: 300, type: "dish",    spice: 2, quote: "หรูขึ้นมาหน่อย วันนี้เงินเดือนออกเหรอ" },
+    { name: "ข้าวหมกไก่",             emoji: "🍛", price: 60,  type: "rice",    spice: 0, quote: "สีเหลืองสวย อร่อยด้วย ครบจบ" },
+    { name: "ขนมจีนน้ำยา",            emoji: "🍝", price: 40,  type: "noodle",  spice: 1, quote: "ผักเครื่องเคียงฟรี ตักให้สุดแขน" },
+    { name: "ข้าวผัดพริกเผาทะเล",       emoji: "🦑", price: 80,  type: "rice",    spice: 1, quote: "เผ็ดกำลังดี เหมือนชีวิตช่วงนี้" },
+    { name: "ก๋วยเตี๋ยวต้มยำหมูสับ",     emoji: "🍜", price: 60,  type: "noodle",  spice: 2, quote: "ซดน้ำแล้วไอ ไม่ใช่เพราะป่วยนะ" },
+    { name: "ข้าวราดแกงเขียวหวาน",       emoji: "🍛", price: 45,  type: "rice",    spice: 1, quote: "ราดสองอย่างได้นะ ถ้าใจถึง" },
+    { name: "ข้าวคั่วกลิ้งหมู",           emoji: "🔥", price: 50,  type: "rice",    spice: 2, quote: "สายใต้ตัวจริง เหงื่อออกหูก็ยอม" },
+    { name: "ไข่ตุ๋น",                  emoji: "🥚", price: 40,  type: "dish",    spice: 0, quote: "นุ่มฟู เหมือนใจเราตอนหิว" },
+    { name: "ทอดมันปลา",                emoji: "🐠", price: 50,  type: "dish",    spice: 1, quote: "จิ้มอาจาดเยอะๆ แตงกวาเป็นของเรา" },
+    // ของหวาน
+    { name: "ข้าวเหนียวมะม่วง",         emoji: "🥭", price: 100, type: "dessert", spice: 0, quote: "ของหวานระดับโลก ไม่ต้องรู้สึกผิด" },
+    { name: "บัวลอยไข่หวาน",           emoji: "🍡", price: 30,  type: "dessert", spice: 0, quote: "อุ่นๆ หวานๆ เหมือนกอดจากยาย" },
+    { name: "ลอดช่องน้ำกะทิ",           emoji: "🥤", price: 25,  type: "dessert", spice: 0, quote: "สีเขียวแต่ไม่ใช่ผัก อย่าหลอกตัวเอง" },
+    { name: "ทับทิมกรอบ",             emoji: "🍧", price: 35,  type: "dessert", spice: 0, quote: "กรุบๆ เย็นๆ แก้ร้อนได้ แก้เหงาไม่ได้" },
+    { name: "ขนมครก",                emoji: "🥞", price: 30,  type: "dessert", spice: 0, quote: "กินร้อนๆ ระวังลิ้นพองนะ ไม่รับผิดชอบ" },
+    { name: "ปังเย็น",                emoji: "🍨", price: 120, type: "dessert", spice: 0, quote: "แชร์กันกิน... ใช่ เราก็ไม่เชื่อเหมือนกัน" },
+    { name: "กล้วยบวชชี",             emoji: "🍌", price: 30,  type: "dessert", spice: 0, quote: "กล้วยไปบวชแล้ว แต่เรายังไม่ปล่อยวาง" },
+    { name: "ไอติมกะทิ",              emoji: "🍦", price: 25,  type: "dessert", spice: 0, quote: "ใส่ขนมปังด้วย ไม่งั้นไม่ครบสูตร" }
+  ];
+
+  const typeLabel = { noodle: "เส้น", rice: "ข้าว", dish: "กับข้าว", dessert: "ของหวาน" };
+  const spiceLabel = ["ไม่เผ็ด", "เผ็ดนิดๆ 🌶️", "เผ็ดตาย 🌶️🌶️🌶️"];
+
+  const btn = document.getElementById('btn');
+  const card = document.getElementById('card');
+  const dishEl = document.getElementById('dish');
+  const emojiEl = document.getElementById('emoji');
+  const metaEl = document.getElementById('meta');
+  const quoteEl = document.getElementById('quote');
+  const countEl = document.getElementById('count');
+  const matchEl = document.getElementById('match');
+  const filterInputs = document.querySelectorAll('.filters input');
+
+  let lastPick = null;
+  let spins = 0;
+  let spinning = false;
+
+  function getFilters() {
+    const val = n => document.querySelector(`input[name="${n}"]:checked`).value;
+    return { budget: val('budget'), type: val('type'), spice: val('spice') };
+  }
+
+  function matchBudget(price, budget) {
+    if (budget === '50') return price <= 50;
+    if (budget === '100') return price >= 50 && price <= 100;
+    return true;
+  }
+
+  function filteredMenus() {
+    const f = getFilters();
+    return menus.filter(m =>
+      matchBudget(m.price, f.budget) &&
+      (f.type === 'any' || m.type === f.type) &&
+      (f.spice === 'any' || m.spice === Number(f.spice))
+    );
+  }
+
+  function emptyMessage() {
+    const f = getFilters();
+    if (f.type === 'dessert' && f.spice !== 'any' && f.spice !== '0') return 'ของหวานเผ็ดๆ ยังไม่มีใครกล้าคิด 😅';
+    return 'ไม่มีเมนูไหนตรงเลย ลองผ่อนเงื่อนไขหน่อยนะ';
+  }
+
+  function updateMatch() {
+    if (spinning) return;
+    const n = filteredMenus().length;
+    if (n === 0) {
+      matchEl.textContent = emptyMessage();
+      btn.disabled = true;
+    } else {
+      matchEl.innerHTML = `ตรงเงื่อนไข <b>${n}</b> เมนู`;
+      btn.disabled = false;
+    }
+  }
+
+  function pickFrom(list, exclude) {
+    if (list.length === 1) return list[0];
+    let m;
+    do { m = list[Math.floor(Math.random() * list.length)]; } while (m === exclude);
+    return m;
+  }
+
+  function show(m) {
+    dishEl.textContent = m.name;
+    emojiEl.textContent = m.emoji;
+  }
+
+  filterInputs.forEach(i => i.addEventListener('change', updateMatch));
+
+  btn.addEventListener('click', () => {
+    const pool = filteredMenus();
+    if (pool.length === 0) return;
+
+    spinning = true;
+    btn.disabled = true;
+    filterInputs.forEach(i => i.disabled = true);
+    card.classList.remove('done');
+    card.classList.add('spinning');
+    quoteEl.classList.remove('show');
+    metaEl.textContent = '';
+
+    const final = pickFrom(pool, pool.includes(lastPick) ? lastPick : null);
+    // ตอนวน ใช้เมนูในกลุ่มที่กรองแล้ว (ถ้าน้อยเกินไปใช้ทั้งหมดเพื่อความลุ้น)
+    const rollPool = pool.length >= 3 ? pool : menus;
+    const totalTicks = 22;
+    let tick = 0;
+    let cur = null;
+
+    function step() {
+      tick++;
+      if (tick < totalTicks) {
+        cur = pickFrom(rollPool, cur);
+        show(cur);
+        emojiEl.style.transform = `rotate(${(tick % 2 ? 1 : -1) * 12}deg)`;
+        // ช้าลงเรื่อยๆ ให้ดูลุ้น
+        const delay = 50 + Math.pow(tick / totalTicks, 3) * 380;
+        setTimeout(step, delay);
+      } else {
+        show(final);
+        emojiEl.style.transform = 'none';
+        metaEl.textContent = `${typeLabel[final.type]} · ~${final.price} บาท · ${spiceLabel[final.spice]}`;
+        quoteEl.textContent = '“' + final.quote + '”';
+        card.classList.remove('spinning');
+        void card.offsetWidth; // รีสตาร์ทแอนิเมชัน
+        card.classList.add('done');
+        quoteEl.classList.add('show');
+        lastPick = final;
+        spins++;
+        countEl.textContent = spins === 1
+          ? 'ไม่ถูกใจ? กดใหม่ได้ ไม่มีใครรู้'
+          : `สุ่มไปแล้ว ${spins} ครั้ง... เลือกยากจริงๆ นะเรา`;
+        btn.innerHTML = 'สุ่มอีกที<small>ยังไม่พอใจใช่มั้ย</small>';
+        filterInputs.forEach(i => i.disabled = false);
+        spinning = false;
+        updateMatch();
+      }
+    }
+    step();
+  });
+
+  updateMatch();
+</script>
+</body>
+</html>
